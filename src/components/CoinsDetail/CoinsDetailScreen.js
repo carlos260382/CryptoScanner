@@ -1,10 +1,13 @@
 import React, { Component } from "react";
-import { View, Image, SectionList, Text, StyleSheet, } from "react-native";
-import Color from '../../resourse/colors.js'
+import { View, Image, SectionList, Text, FlatList, StyleSheet, } from "react-native";
+import Color from '../../resourse/colors.js';
+import Http from '../../libs/http.js'
+import CoinsMarketItem from '../CoinsDetail/CoinsMarketItem.js'
 
 class CoinsDetailScreen extends Component {
 state = {
-    coin:{}
+    coin:{},
+    markets: []
 }
 getSymbolIcon = (name)=>{
     if(name){
@@ -35,17 +38,28 @@ return sections;
 
 }
 
+getMarket = async (coinId)=>{
+const url = `https://api.coinlore.net/api/coin/markets/?id=${coinId}`
+
+const markets = await Http.instance.get(url)
+
+this.setState({markets})
+console.log('este es el mercado', markets)
+}
+
 componentDidMount(){
 const { coin } = this.props.route.params
 
 this.props.navigation.setOptions({ title: coin.symbol } )
 
-this.setState( { coin })
+this.getMarket(coin.id);
+
+this.setState( { coin });
 console.log ('este es el coin', coin )
 }
 
 render () {
-const { coin } = this.state;
+const { coin, markets } = this.state;
 
 return (
 <View style= {style.container} >
@@ -57,6 +71,7 @@ return (
     </View>
 
 <SectionList 
+    style = {style.section}
     sections={ this.getSeptions(coin) }  
     keyExtractor={ (item)=> item }
     renderItem={({item})=> 
@@ -70,6 +85,13 @@ return (
 </View>
 }
 />
+<Text style = { style.marketTitle} >Markets</Text>
+<FlatList
+style = { style.list}
+horizontal = {true}
+data = {markets}
+renderItem={({item})=>  <CoinsMarketItem item={item}  />  }
+ />
 </View>
 )
 }
@@ -100,8 +122,15 @@ const style = StyleSheet.create ({
     backgroundColor: 'rgba(0,0,0,0.2)',
     padding: 8
     },
+    list: {
+        maxHeight: 90,
+        paddingLeft: 16
+    },
     sectionItem: {
         padding: 8
+    },
+    section: {
+    maxHeight: 220
     },
     itemText: {
         color: '#fff',
@@ -111,8 +140,16 @@ const style = StyleSheet.create ({
         color: '#fff',
         fontSize: 14,
         fontWeight: 'bold'
+    },
+    marketTitle: {
+        color: '#fff',
+        fontSize: 16,
+        marginBottom: 16,
+        marginLeft:16,
+        fontWeight: 'bold'
     }
- })
+    
+ });
 
 
 export default CoinsDetailScreen;
