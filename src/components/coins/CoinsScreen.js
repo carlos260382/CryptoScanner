@@ -3,34 +3,53 @@ import { View, Text, ActivityIndicator, StyleSheet, FlatList } from "react-nativ
 import Http from '../../libs/http'; 
 import CoinsItems from './CoinsItems';
 import colors from "../../resourse/colors";
+import CoinsSearch from './CoinsSearch' 
 
 
 class CoinsScreen extends Component {
 
 state = {
-coins : []
+coins : [],
+allCoins : []
 }
 
-componentDidMount = async ()=>{
-this.setState( { loading: false } );
+componentDidMount = ()=>{
+    this.getCoins()
+}
 
-const res = await Http.instance.get('https://api.coinlore.net/api/tickers/') 
-//console.log('coins', coins) 
-this.setState({ coins: res.data });
-} 
+getCoins = async () => {
+
+    this.setState( { loading: true } );
+    
+    const res = await Http.instance.get('https://api.coinlore.net/api/tickers/') 
+    //console.log('coins', coins) 
+    this.setState({ coins: res.data, allCoins:res.data, loading:false });
+
+};
 
 
 handlePress = (coin) =>{
-
-this.props.navigation.navigate('CoinsDetail', {coin}) 
+    this.props.navigation.navigate('CoinsDetail', {coin}) 
 }
 
+handleSearch=(query)=>{
+const {allCoins} = this.state;
+
+const coinsFiltered = allCoins.filter((coin)=>{
+return coin.name.toLowerCase().includes(query.toLowerCase()) ||
+       coin.symbol.toLowerCase().includes(query.toLowerCase());
+})
+this.setState( { coins: coinsFiltered} )
+console.log('este es filtrado', coinsFiltered)
+};
+
 render () {
-const { coins, loading } = this.state;
+    const { coins, loading } = this.state;
 
 
 return (
 <View style = {style.container}>
+<CoinsSearch onChange={ this.handleSearch}  /> 
 
 { loading? 
 <ActivityIndicator 
